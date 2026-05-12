@@ -1,0 +1,108 @@
+@startuml
+
+<style>
+  componentDiagram {
+    BackgroundColor #FDFDFD
+    BorderColor #14213D
+    FontColor #000000
+    component {
+      BackgroundColor #EAF2FB
+      BorderColor #14213D
+      FontColor #000000
+      BorderThickness 1.5
+      RoundCorner 8
+    }
+    interface {
+      BackgroundColor #FDFDFD
+      BorderColor #555555
+    }
+    arrow {
+      LineColor #555555
+      FontThickness 1.2
+    }
+    stereotype {
+      FontColor #D90429
+      FontStyle italic
+    }
+  }
+</style>
+
+title SGO - Diagrama de Componentes
+
+' =========================================================
+' CAMADA DE APRESENTAÇÃO
+' =========================================================
+package "Camada de Apresentação" #F4F6F8 {
+    [Interface de Usuário\n(Web Browser)] as UI <<component>>
+}
+
+' =========================================================
+' CAMADA DE APLICAÇÃO
+' =========================================================
+package "Camada de Aplicação" #EAF2FB {
+    [Módulo de Inscrições]  as MOD_INS  <<component>>
+    [Módulo de Alocação]    as MOD_ALOC <<component>>
+    [Módulo de Resultados]  as MOD_RES  <<component>>
+    [Módulo de Relatórios\nde Medalhas] as MOD_REL <<component>>
+}
+
+' =========================================================
+' CAMADA DE DADOS
+' =========================================================
+package "Camada de Dados" #F4F6F8 {
+    [Repositório de\nCompetições]  as REP_COMP <<component>>
+    [Repositório de\nAtletas]      as REP_ATL  <<component>>
+    [Repositório de\nLocais]       as REP_LOC  <<component>>
+    [Repositório de\nResultados]   as REP_RESU <<component>>
+}
+
+' =========================================================
+' CAMADA DE INFRAESTRUTURA
+' =========================================================
+package "Camada de Infraestrutura" #E8F8E8 {
+    database "Banco de Dados\n(PostgreSQL)" as BD
+}
+
+' =========================================================
+' INTERFACES FORNECIDAS (provided) e REQUERIDAS (required)
+' =========================================================
+
+' UI expõe interface de entrada ao usuário
+UI         -down- () "IEntradaUsuario"
+() "IEntradaUsuario" -- MOD_INS
+() "IEntradaUsuario" -- MOD_ALOC
+() "IEntradaUsuario" -- MOD_RES
+() "IEntradaUsuario" -- MOD_REL
+
+' Módulo de Inscrições fornece e requer interfaces
+MOD_INS    -down- () "IInscricao"
+() "IInscricao"  ..> REP_ATL  : <<require>>
+() "IInscricao"  ..> REP_COMP : <<require>>
+
+' Módulo de Alocação fornece e requer interfaces
+MOD_ALOC   -down- () "IAlocacao"
+() "IAlocacao"   ..> REP_LOC  : <<require>>
+() "IAlocacao"   ..> REP_COMP : <<require>>
+
+note bottom of MOD_ALOC
+  Verifica conflito de horário e disponibilidade de local
+  antes de confirmar a alocação da competição.
+end note
+
+' Módulo de Resultados fornece e requer interfaces
+MOD_RES    -down- () "IResultado"
+() "IResultado"  ..> REP_RESU : <<require>>
+() "IResultado"  ..> REP_ATL  : <<require>>
+
+' Módulo de Relatórios consulta resultados e países
+MOD_REL    -down- () "IRelatorio"
+() "IRelatorio"  ..> REP_RESU : <<require>>
+() "IRelatorio"  ..> REP_ATL  : <<require>>
+
+' Repositórios persistem no banco de dados
+REP_COMP  -down-> BD : <<JDBC>>
+REP_ATL   -down-> BD : <<JDBC>>
+REP_LOC   -down-> BD : <<JDBC>>
+REP_RESU  -down-> BD : <<JDBC>>
+
+@enduml

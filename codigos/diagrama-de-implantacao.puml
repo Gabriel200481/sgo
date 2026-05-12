@@ -1,0 +1,94 @@
+@startuml
+
+<style>
+  deploymentDiagram {
+    BackgroundColor #FDFDFD
+    BorderColor #14213D
+    FontColor #000000
+    node {
+      BackgroundColor #EAF2FB
+      BorderColor #14213D
+      BorderThickness 1.5
+      FontColor #000000
+    }
+    artifact {
+      BackgroundColor #FFF8DC
+      BorderColor #B8860B
+      FontColor #000000
+    }
+    database {
+      BackgroundColor #E8F8E8
+      BorderColor #2E7D32
+      FontColor #000000
+    }
+    arrow {
+      LineColor #555555
+      FontThickness 1.2
+    }
+    stereotype {
+      FontColor #D90429
+      FontStyle italic
+    }
+  }
+</style>
+
+title SGO - Diagrama de Implantação
+
+' =========================================================
+' NÓ 1 — DISPOSITIVO DO USUÁRIO
+' =========================================================
+node "Dispositivo do Usuário\n(PC / Smartphone)" as CLIENTE <<device>> {
+    node "Navegador Web\n(Chrome / Firefox)" as BROWSER <<executionEnvironment>> {
+        artifact "sgo-frontend.js"  as FE_JS  <<artifact>>
+        artifact "sgo-styles.css"   as FE_CSS <<artifact>>
+    }
+}
+
+' =========================================================
+' NÓ 2 — SERVIDOR DE APLICAÇÃO
+' =========================================================
+node "Servidor de Aplicação\n(Linux / Docker)" as APP_SERVER <<server>> {
+    node "JVM / Runtime\n(Java 17 / Spring Boot)" as JVM <<executionEnvironment>> {
+        artifact "sgo-api.jar"              as API     <<artifact>>
+        artifact "ModuloInscricoes.jar"     as M_INS   <<artifact>>
+        artifact "ModuloAlocacao.jar"       as M_ALOC  <<artifact>>
+        artifact "ModuloResultados.jar"     as M_RES   <<artifact>>
+        artifact "ModuloRelatorios.jar"     as M_REL   <<artifact>>
+    }
+}
+
+' =========================================================
+' NÓ 3 — SERVIDOR DE BANCO DE DADOS
+' =========================================================
+node "Servidor de Banco de Dados\n(Linux)" as DB_SERVER <<server>> {
+    database "PostgreSQL 15\n(sgodb)" as PGDB {
+        artifact "tb_competicao"  <<table>>
+        artifact "tb_atleta"      <<table>>
+        artifact "tb_local"       <<table>>
+        artifact "tb_inscricao"   <<table>>
+        artifact "tb_resultado"   <<table>>
+        artifact "tb_pais"        <<table>>
+    }
+}
+
+' =========================================================
+' NÓ 4 — SERVIDOR DE ARQUIVOS / CDN (opcional, boas práticas)
+' =========================================================
+node "CDN / Servidor de Arquivos Estáticos" as CDN <<server>> {
+    artifact "Recursos Estáticos\n(JS / CSS / Imagens)" as STATIC <<artifact>>
+}
+
+' =========================================================
+' CAMINHOS DE COMUNICAÇÃO
+' =========================================================
+
+' Usuário acessa recursos estáticos via CDN (HTTPS)
+BROWSER    ..> CDN        : <<HTTPS / 443>>
+
+' Usuário (frontend) consome a API REST do servidor de aplicação
+BROWSER    ..> APP_SERVER : <<HTTPS / 443\nREST/JSON>>
+
+' Servidor de aplicação persiste no banco de dados
+APP_SERVER ..> DB_SERVER  : <<JDBC / 5432\nSSL>>
+
+@enduml

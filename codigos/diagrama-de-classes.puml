@@ -1,0 +1,229 @@
+@startuml
+
+' === ESTILO MODERNO CSS-LIKE ===
+<style>
+  classDiagram {
+    class {
+      BackgroundColor #FDFDFD
+      LineColor #14213D
+      FontColor #000000
+      BorderThickness 1.5
+      RoundCorner 6
+    }
+    package {
+      BackgroundColor #F4F6F8
+      LineColor #6C757D
+      FontStyle bold
+      FontSize 14
+    }
+    arrow {
+      LineColor #555555
+      FontThickness 1.2
+    }
+    stereotype {
+      FontColor #D90429
+      FontStyle italic
+    }
+  }
+</style>
+
+top to bottom direction
+set separator none
+
+' =========================================================
+' PACOTE: APRESENTAÇÃO
+' =========================================================
+package "Apresentacao" {
+
+    class SgoController <<Controller>> {
+        + gerenciarCompeticoes(): void
+        + realizarInscricoes(): void
+        + alocarLocais(): void
+        + exibirQuadroMedalhas(): void
+    }
+}
+
+' =========================================================
+' PACOTE: SERVIÇO
+' =========================================================
+package "Servico" {
+
+    class CompeticaoService <<Service>> {
+        + criarCompeticao(modalidade: String, data: Date, horario: Time): Competicao
+        + listarCompeticoes(): List
+    }
+
+    class InscricaoService <<Service>> {
+        + inscreverAtleta(atleta: Atleta, comp: Competicao, pais: Pais): Boolean
+        - validarRepresentacaoUnica(atleta: Atleta, modalidade: String): Boolean
+    }
+
+    class AlocacaoLocalService <<Service>> {
+        + alocarLocal(comp: Competicao, local: Local): Boolean
+        - verificarConflitoHorario(local: Local, data: Date, horario: Time): Boolean
+    }
+
+    class ResultadoService <<Service>> {
+        + registrarPodio(comp: Competicao, primeiro: Atleta, segundo: Atleta, terceiro: Atleta): void
+        + gerarRelatorioMedalhasPorPais(): Map
+    }
+}
+
+' =========================================================
+' PACOTE: DOMÍNIO
+' =========================================================
+package "Dominio" {
+
+    enum TipoMedalha <<Enumeration>> {
+        OURO
+        PRATA
+        BRONZE
+    }
+
+    class Pais <<Entity>> {
+        - sigla: String
+        - nome: String
+        + getSigla(): String
+        + getNome(): String
+    }
+
+    class Atleta <<Entity>> {
+        - passaporte: String
+        - nome: String
+        - dataNascimento: Date
+        + getNome(): String
+        + obterPais(): Pais
+    }
+
+    class Local <<Entity>> {
+        - idLocal: UUID
+        - nome: String
+        - capacidade: Integer
+        - endereco: String
+        + isDisponivel(dataHoraInicio: DateTime, duracaoMinutos: Integer, fusoHorario: String): Boolean
+    }
+
+    class Competicao <<AggregateRoot>> {
+        - idCompeticao: UUID
+        - modalidade: String
+        - dataHoraInicio: DateTime
+        - duracaoMinutos: Integer
+        - fusoHorario: String
+        + adicionarInscricao(inscricao: Inscricao): void
+        + registrarResultado(res: Resultado): void
+        + getModalidade(): String
+    }
+
+    class Inscricao <<Entity>> {
+        - numeroInscricao: UUID
+        - dataInscricao: DateTime
+        - paisRepresentado: Pais
+        - modalidade: String
+        + getStatus(): String
+        + getPaisRepresentado(): Pais
+    }
+
+    class Resultado <<ValueObject>> {
+        - posicao: Integer
+        - tempoOuPontuacao: Float
+        - medalha: TipoMedalha
+        + getTipoMedalha(): TipoMedalha
+    }
+}
+
+note right of Resultado
+  Registra 1º, 2º e 3º lugares (posições e medalhas)
+  de cada competição realizada.
+end note
+
+' =========================================================
+' PACOTE: REPOSITÓRIO
+' =========================================================
+package "Repositorio" {
+
+    interface ICompeticaoRepository <<Repository>> {
+        + salvar(comp: Competicao): void
+        + buscarPorModalidade(modalidade: String): List
+        + buscarTodas(): List
+    }
+
+    interface IAtletaRepository <<Repository>> {
+        + salvar(atleta: Atleta): void
+        + buscarPorPais(siglaPais: String): List
+    }
+
+    interface ILocalRepository <<Repository>> {
+        + salvar(local: Local): void
+        + buscarLocaisDisponiveis(data: Date, horario: Time): List
+    }
+
+    interface IResultadoRepository <<Repository>> {
+        + salvar(resultado: Resultado): void
+        + buscarPorCompeticao(idComp: String): List
+    }
+}
+
+' =========================================================
+' RELACIONAMENTOS ARQUITETURAIS (dependências entre camadas)
+' =========================================================
+SgoController ..> CompeticaoService       : "usa >"
+SgoController ..> InscricaoService        : "usa >"
+SgoController ..> AlocacaoLocalService    : "usa >"
+SgoController ..> ResultadoService        : "usa >"
+
+CompeticaoService   ..> Competicao            : "cria/manipula >"
+CompeticaoService   ..> ICompeticaoRepository : "persiste >"
+
+InscricaoService    ..> Inscricao             : "cria >"
+InscricaoService    ..> IAtletaRepository     : "consulta >"
+
+AlocacaoLocalService ..> Local               : "consulta >"
+AlocacaoLocalService ..> ILocalRepository    : "persiste >"
+
+ResultadoService    ..> Resultado             : "cria >"
+ResultadoService    ..> IResultadoRepository  : "persiste >"
+
+' =========================================================
+' RELACIONAMENTOS ESTRUTURAIS DE DOMÍNIO
+' =========================================================
+
+' Um Atleta representa um único País (no contexto SGO)
+Pais    "1"    <--    "1..*" Atleta      : "representa <"
+
+' Uma Competição ocorre em exatamente um Local
+Competicao "1" --> "1" Local     : "ocorre em >"
+
+' Composição: Inscrições pertencem exclusivamente à Competição
+Competicao "1" *-- "0..*" Inscricao    : "contém >"
+
+' A Inscrição referencia o Atleta que persiste de forma autônoma
+Inscricao  "0..*" -right-> "1" Atleta  : "vinculada a >"
+
+' A Inscrição registra o País que o Atleta representa naquela modalidade
+Inscricao  "0..*" --> "1" Pais         : "representa país >"
+
+note left of Inscricao
+    Restrição: único por (Atleta, Modalidade) — um atleta não pode representar
+    mais de um país na mesma modalidade.
+end note
+
+note right of Competicao
+    IDs: usar UUIDs; Datas: usar DateTime ISO-8601 com timezone.
+    Constraint BD: PK/FK, UNIQUE(atleta,modalidade) em `inscricao`.
+end note
+
+note right of AlocacaoLocalService
+    Verificação de conflito: checar interseção entre [dataHoraInicio, dataHoraInicio+duracao]
+    considerando fuso horário; usar algoritmo de intervalo fechado/aberto.
+end note
+
+' Composição: Resultados (pódio) nascem e morrem com a Competição
+Competicao "1" *-- "0..3" Resultado    : "gera pódio >"
+
+' O Resultado pertence a um Atleta específico
+Resultado  "0..*" -right-> "1" Atleta  : "conquistado por >"
+
+' O Resultado rende um tipo de Medalha (1º→Ouro, 2º→Prata, 3º→Bronze)
+Resultado  "0..1" -down->  "1" TipoMedalha : "rende >"
+
+@enduml

@@ -1,0 +1,105 @@
+@startuml
+
+<style>
+  packageDiagram {
+    BackgroundColor #FDFDFD
+    BorderColor #14213D
+    FontColor #000000
+    package {
+      BackgroundColor #EAF2FB
+      LineColor #14213D
+      FontStyle bold
+      FontSize 13
+    }
+    arrow {
+      LineColor #555555
+      FontThickness 1.2
+    }
+    stereotype {
+      FontColor #D90429
+      FontStyle italic
+    }
+  }
+</style>
+
+title SGO - Diagrama de Pacotes
+
+' =========================================================
+' PACOTES DO SISTEMA
+' =========================================================
+
+package "sgo" {
+
+    package "apresentacao" <<layer>> {
+        package "controllers" {
+      }
+      package "dto" {
+      }
+      package "mapper" {
+        }
+    }
+
+    package "servico" <<layer>> {
+        package "competicao" {
+        }
+        package "inscricao" {
+        }
+        package "alocacao" {
+        }
+        package "resultado" {
+        }
+    }
+
+    package "dominio" <<layer>> {
+        package "model" {
+        }
+        package "enums" {
+        }
+    }
+
+    package "repositorio" <<layer>> {
+        package "interfaces" {
+        }
+    }
+
+    package "infra" <<layer>> {
+        package "persistence" {
+        }
+        package "config" {
+        }
+    }
+}
+
+' =========================================================
+' DEPENDÊNCIAS ENTRE PACOTES (regra: externo → interno)
+' =========================================================
+
+' Apresentação depende de Serviço
+"apresentacao" ..> "servico"     : <<usa>>
+
+' Serviço depende de Domínio e Repositório
+"servico"      ..> "dominio"     : <<usa>>
+"servico"      ..> "repositorio" : <<usa>>
+
+' Repositório (interfaces) depende de Domínio
+"repositorio"  ..> "dominio"     : <<usa>>
+
+' Infra implementa interfaces do Repositório e acessa Domínio
+"infra"        ..> "repositorio" : <<implementa>>
+"infra"        ..> "dominio"     : <<usa>>
+
+' Nota explicativa
+note bottom of "dominio"
+  Núcleo do sistema. Sem dependências externas.
+  Contém: Competicao, Atleta, Local, Resultado, Pais, Inscricao, TipoMedalha
+  Restrição importante: Inscricao deve ser única por (Atleta, Modalidade).
+end note
+
+note bottom of "infra"
+  Implementa repositórios.
+  Contém: JPA / JDBC,
+  configurações de BD,
+  mapeamentos ORM.
+end note
+
+@enduml

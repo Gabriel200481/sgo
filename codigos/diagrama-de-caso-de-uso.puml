@@ -1,0 +1,75 @@
+@startuml
+
+' === ESTILO MODERNO CSS-LIKE ===
+<style>
+  usecase {
+    BackgroundColor #FDFDFD
+    BorderColor #14213D
+    FontColor #000000
+  }
+  actor {
+    BackgroundColor #D6E4F0
+    BorderColor #14213D
+    FontColor #000000
+  }
+  arrow {
+    LineColor #555555
+  }
+  stereotype {
+    FontColor #D90429
+    FontStyle italic
+  }
+</style>
+
+left to right direction
+
+' === ATORES PRIMÁRIOS ===
+actor "Atleta"      as atleta
+actor "Organizador" as org
+
+' === FRONTEIRA DO SISTEMA ===
+rectangle "SGO - Sistema de Gestão das Olimpíadas" {
+
+    ' --- Casos de uso principais (nível do mar) ---
+    usecase "Cadastrar Competição"        as UC01
+    usecase "Inscrever Atleta"            as UC02
+    usecase "Alocar Local"                as UC03
+    usecase "Registrar Resultados"        as UC04
+    usecase "Gerar Relatório de Medalhas" as UC05
+
+    ' --- Casos de uso de suporte (sub-funções reutilizáveis) ---
+    usecase "Validar Representação\nde País por Modalidade" as UC06
+    usecase "Verificar Disponibilidade\nde Local"           as UC07
+    usecase "Tratar Conflito\nde Horário"                   as UC08
+}
+
+' === ASSOCIAÇÕES ===
+org    --> UC01
+atleta --> UC02
+org    --> UC03
+org    --> UC04
+org    --> UC05
+
+' === RELACIONAMENTOS <<include>> — obrigatórios e incondicionais ===
+' Inscrever Atleta SEMPRE valida a representação de país (regra de negócio 2)
+UC02 .> UC06 : <<include>>
+
+' Alocar Local SEMPRE verifica disponibilidade (regra de negócio 3)
+UC03 .> UC07 : <<include>>
+
+' === RELACIONAMENTOS <<extend>> — condicionais ===
+' Somente SE houver conflito de horário, a rotina de tratamento é acionada
+UC08 .> UC03 : <<extend>>
+
+' === NOTAS EXPLICATIVAS ===
+note right of org
+  Organizador: responsável pela gestão
+  do evento (criar competições, alocar locais, registrar resultados).
+end note
+
+note left of atleta
+  Atleta: participante que se inscreve
+  em competições e compete pelo seu país.
+end note
+
+@enduml
