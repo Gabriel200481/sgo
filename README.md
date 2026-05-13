@@ -101,7 +101,7 @@ O sistema utiliza uma **Arquitetura em Camadas (Layered Architecture)** para gar
 | **Classes** | Estrutura estática, entidades e regras de domínio | [./codigos/diagrama-de-classes.puml](./codigos/diagrama-de-classes.puml) |
 | **Pacotes** | Organização lógica e dependências entre camadas | [./codigos/diagrama-de-pacotes.puml](./codigos/diagrama-de-pacotes.puml) |
 | **Componentes** | Modularização da interface, serviços e repositórios | [./codigos/diagrama-de-componentes.puml](./codigos/diagrama-de-componentes.puml) |
-| **Implantação** | Arquitetura física: servidores, rede e banco de dados | [./codigos/diagrama-de-implantação.puml](./codigos/diagrama-de-implantação.puml) |
+| **Implantação** | Arquitetura física: servidores, rede e banco de dados | [./codigos/diagrama-de-implantacao.puml](./codigos/diagrama-de-implantacao.puml) |
 
 ---
 
@@ -115,7 +115,7 @@ SGO/
 │   ├── diagrama-de-classes.puml
 │   ├── diagrama-de-pacotes.puml
 │   ├── diagrama-de-componentes.puml
-│   └── diagrama-de-implantação.puml
+│   └── diagrama-de-implantacao.puml
 └── imagens/                            # Exportações em PNG dos diagramas
     ├── diagrama-de-caso-de-uso.png
     ├── diagrama-de-classes.png
