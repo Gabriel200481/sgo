@@ -1,0 +1,115 @@
+@startuml
+
+' === ESTILO MODERNO (Mantendo seu padrão) ===
+<style>
+  sequenceDiagram {
+    LifeLine {
+      BackgroundColor #D6E4F0
+      LineColor #14213D
+    }
+    Participant {
+      BackgroundColor #FDFDFD
+      BorderColor #14213D
+      FontColor #000000
+      RoundCorner 10
+    }
+    Arrow {
+      LineColor #555555
+    }
+    Grouping {
+      BackgroundColor #F4F6F8
+      LineColor #14213D
+      FontColor #D90429
+    }
+  }
+</style>
+
+title SGO - Diagrama de Sequência (Interações Principais)
+
+autonumber
+
+' === ATORES E PARTICIPANTES ===
+actor "Atleta" as A
+actor "Organizador" as O
+
+box "Camada de Apresentação" #F4F6F8
+    participant "SgoController" as Ctrl <<Controller>>
+end box
+
+box "Camada de Serviço" #EAF2FB
+    participant "InscricaoService" as S_INS <<Service>>
+    participant "AlocacaoLocalService" as S_ALOC <<Service>>
+    participant "ResultadoService" as S_RES <<Service>>
+end box
+
+box "Camada de Dados" #F4F6F8
+    participant "IInscricaoRepository" as R_INS <<Interface>>
+    participant "ILocalRepository" as R_LOC <<Interface>>
+    participant "IResultadoRepository" as R_RES <<Interface>>
+end box
+
+' === 1. INSCRIÇÃO DE ATLETAS ===
+group Inscrição de Atletas [Regra 2]
+    A -> Ctrl : solicitarInscricao(atletaId, compId, pais)
+    activate Ctrl
+    Ctrl -> S_INS : inscreverAtleta(atleta, comp, pais)
+    activate S_INS
+    
+    S_INS -> S_INS : validarRepresentacaoUnica(atleta, modalidade)
+    note right: Garante que o atleta representa \napenas um país por modalidade.
+    
+    alt Sucesso na Validação
+        S_INS -> R_INS : salvar(novaInscricao)
+        S_INS --> Ctrl : confirmação de inscrição
+        Ctrl --> A : exibição de sucesso
+    else Falha (Já inscrito por outro país)
+        S_INS --> Ctrl : erro: representação duplicada
+        Ctrl --> A : mensagem de erro
+    end
+    deactivate S_INS
+    deactivate Ctrl
+end
+
+== SEPARAÇÃO DE FLUXO ==
+
+' === 2. ALOCAÇÃO DE LOCAIS ===
+group Alocação de Locais [Regra 3]
+    O -> Ctrl : definirLocal(compId, localId)
+    activate Ctrl
+    Ctrl -> S_ALOC : alocarLocal(comp, local)
+    activate S_ALOC
+    
+    S_ALOC -> S_ALOC : verificarConflitoHorario(local, data, horario)
+    note right: Verifica se o local já possui \noutra prova no mesmo horário.
+    
+    alt Local Disponível
+        S_ALOC -> R_LOC : salvar(alocacao)
+        S_ALOC --> Ctrl : local alocado com sucesso
+        Ctrl --> O : confirmação visual
+    else Conflito de Horário
+        S_ALOC --> Ctrl : erro: conflito detectado
+        Ctrl --> O : alerta de conflito
+    end
+    deactivate S_ALOC
+    deactivate Ctrl
+end
+
+== SEPARAÇÃO DE FLUXO ==
+
+' === 3. REGISTRO DE RESULTADOS ===
+group Registro de Resultados [Regra 4]
+    O -> Ctrl : informarPodio(compId, atletasVencedores)
+    activate Ctrl
+    Ctrl -> S_RES : registrarPodio(comp, p1, p2, p3)
+    activate S_RES
+    
+    S_RES -> S_RES : criarResultados(medalhas)
+    S_RES -> R_RES : salvar(resultados)
+    
+    S_RES --> Ctrl : pódio registrado
+    deactivate S_RES
+    Ctrl --> O : exibição do quadro de resultados
+    deactivate Ctrl
+end
+
+@enduml
