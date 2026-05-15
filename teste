@@ -117,14 +117,14 @@ SGO/
 │   ├── diagrama-de-classes.puml
 │   ├── diagrama-de-pacotes.puml
 │   ├── diagrama-de-componentes.puml
-│   ├── diagrama-de-implantacao.puml
+│   └── diagrama-de-implantacao.puml
 │   └── diagrama-de-sequencia.puml
 └── imagens/                            # Exportações em PNG dos diagramas
     ├── diagrama-de-caso-de-uso.png
     ├── diagrama-de-classes.png
     ├── diagrama-de-pacotes.png
     ├── diagrama-de-componentes.png
-    ├── diagrama-de-implantação.png
+    └── diagrama-de-implantação.png
     └── diagrama-de-sequencia.png
 ```
 
@@ -234,15 +234,11 @@ Mostra a arquitetura física do sistema com dispositivos dos usuários, servidor
 ---
 
 ### 6. Diagrama de Sequência
-Representa o fluxo dinâmico das interações entre os atores (Atleta e Organizador) e as camadas do sistema (Apresentação, Serviço e Dados) para os três principais fluxos operacionais do SGO.
+Representa o fluxo dinâmico das interações entre os atores (Atleta e Organizador) e as camadas do sistema (Apresentação, Serviço e Dados) para os três principais fluxos operacionais do SGO:
 
-O diagrama é dividido em três grupos de interação:
-
-- **Inscrição de Atletas (Regra 2):** O Atleta solicita inscrição ao `SgoController`, que delega ao `InscricaoService`. O serviço executa internamente a validação de representação única por modalidade. Em caso de sucesso, a inscrição é persistida via `IInscricaoRepository`; em caso de conflito de país, uma mensagem de erro é retornada ao atleta.
-
-- **Alocação de Locais (Regra 3):** O Organizador define um local para uma competição. O `AlocacaoLocalService` verifica internamente a existência de conflito de horário. Se o local estiver disponível, a alocação é salva via `ILocalRepository`; caso contrário, um alerta de conflito é exibido.
-
-- **Registro de Resultados (Regra 4):** O Organizador informa o pódio (1º, 2º e 3º colocados). O `ResultadoService` cria os objetos de resultado com as respectivas medalhas e os persiste via `IResultadoRepository`, retornando ao organizador o quadro de resultados.
+- **Inscrição de Atletas (Regra 2):** O Atleta solicita inscrição ao `SgoController`, que delega ao `InscricaoService`. O serviço valida a representação única por modalidade e, em caso de sucesso, persiste via `IInscricaoRepository`; em caso de conflito de país, retorna erro ao atleta.
+- **Alocação de Locais (Regra 3):** O Organizador define um local para uma competição. O `AlocacaoLocalService` verifica conflito de horário e, se disponível, persiste via `ILocalRepository`; caso contrário, emite alerta de conflito.
+- **Registro de Resultados (Regra 4):** O Organizador informa o pódio. O `ResultadoService` cria os resultados com as respectivas medalhas e os persiste via `IResultadoRepository`, retornando o quadro de resultados.
 
 <img width="800px" height="600px" src="imagens/diagrama-de-sequencia.png" alt="Diagrama de Sequência"/>
 
