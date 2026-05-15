@@ -21,7 +21,7 @@
 
 ## 🚧 Status do Projeto
 
-[![Versão](https://img.shields.io/badge/Versão-v1.0.0-blue)](#)
+[![Versão](https://img.shields.io/badge/Versão-v1.1.0-blue)](#)
 ![PlantUML](https://img.shields.io/badge/Modelagem-PlantUML-orange?style=for-the-badge&logo=uml&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-17-007ec6?style=for-the-badge&logo=openjdk&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?style=for-the-badge&logo=postgresql&logoColor=white)
@@ -30,6 +30,7 @@
 - [x] **Fase 2:** Modelagem de Casos de Uso e Classes
 - [x] **Fase 3:** Definição Arquitetural (Pacotes e Componentes)
 - [x] **Fase 4:** Planejamento de Infraestrutura (Implantação)
+- [x] **Fase 5:** Modelagem Comportamental (Sequência)
 
 ---
 
@@ -102,6 +103,7 @@ O sistema utiliza uma **Arquitetura em Camadas (Layered Architecture)** para gar
 | **Pacotes** | Organização lógica e dependências entre camadas | [./codigos/diagrama-de-pacotes.puml](./codigos/diagrama-de-pacotes.puml) |
 | **Componentes** | Modularização da interface, serviços e repositórios | [./codigos/diagrama-de-componentes.puml](./codigos/diagrama-de-componentes.puml) |
 | **Implantação** | Arquitetura física: servidores, rede e banco de dados | [./codigos/diagrama-de-implantacao.puml](./codigos/diagrama-de-implantacao.puml) |
+| **Sequência** | Fluxo dinâmico das interações entre atores e camadas | [./codigos/diagrama-de-sequencia.puml](./codigos/diagrama-de-sequencia.puml) |
 
 ---
 
@@ -116,12 +118,14 @@ SGO/
 │   ├── diagrama-de-pacotes.puml
 │   ├── diagrama-de-componentes.puml
 │   └── diagrama-de-implantacao.puml
+│   └── diagrama-de-sequencia.puml
 └── imagens/                            # Exportações em PNG dos diagramas
     ├── diagrama-de-caso-de-uso.png
     ├── diagrama-de-classes.png
     ├── diagrama-de-pacotes.png
     ├── diagrama-de-componentes.png
     └── diagrama-de-implantação.png
+    └── diagrama-de-sequencia.png
 ```
 
 ---
@@ -226,6 +230,17 @@ Ilustra os componentes principais do sistema (Interface de Usuário, Módulo de 
 Mostra a arquitetura física do sistema com dispositivos dos usuários, servidores de aplicação, banco de dados e infra de suporte.
 
 <img width="800px" height="600px" src="imagens/diagrama-de-implantacao.png" alt="Diagrama de Implantação"/>
+
+---
+
+### 6. Diagrama de Sequência
+Representa o fluxo dinâmico das interações entre os atores (Atleta e Organizador) e as camadas do sistema (Apresentação, Serviço e Dados) para os três principais fluxos operacionais do SGO:
+
+- **Inscrição de Atletas (Regra 2):** O Atleta solicita inscrição ao `SgoController`, que delega ao `InscricaoService`. O serviço valida a representação única por modalidade e, em caso de sucesso, persiste via `IInscricaoRepository`; em caso de conflito de país, retorna erro ao atleta.
+- **Alocação de Locais (Regra 3):** O Organizador define um local para uma competição. O `AlocacaoLocalService` verifica conflito de horário e, se disponível, persiste via `ILocalRepository`; caso contrário, emite alerta de conflito.
+- **Registro de Resultados (Regra 4):** O Organizador informa o pódio. O `ResultadoService` cria os resultados com as respectivas medalhas e os persiste via `IResultadoRepository`, retornando o quadro de resultados.
+
+<img width="800px" height="600px" src="imagens/diagrama-de-sequencia.png" alt="Diagrama de Sequência"/>
 
 ---
 
